@@ -37,11 +37,9 @@ public class Ricochet {
         public void computeSolution() {
             // TODO: Implement really clever stuff here!
 
-        	int[][] fisk = distanceMap(robots[0]);
-            System.out.println(fisk[1][1]);
 
         }
-        
+        /*
     	public int[][] distanceMap(Point start) {	
     		int[][] distMap = new int[size][size];
     		
@@ -111,6 +109,7 @@ public class Ricochet {
     							   };
     		return neighbors;
     	}
+    	*/
 
         public Endpoints possibleEndpointsForRobot(int robot) {
             assert robot < robots.length;
