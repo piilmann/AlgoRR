@@ -48,8 +48,8 @@ public class Ricochet {
         		
         	}
         	Node prev;
-        	Direction direction;
-        	Point position;
+        	final Direction direction;
+        	final Point position;
         }
         public void computeSolution() {
         	Queue<Node> queue = new LinkedList<Node>();
@@ -59,8 +59,12 @@ public class Ricochet {
             while(!currentNode.position.equals(goal))
             {
             	
-            	Endpoints endpoints = PossibleEndpointsFromPoints(currentNode.position);
-
+            	final Endpoints endpoints = PossibleEndpointsFromPoints(currentNode.position);
+            	
+            	if(!endpoints.up.equals(currentNode.position) || !(currentNode.direction==Direction.Down))
+            	{
+            		queue.add(new Node(Direction.Up, endpoints.up, currentNode));
+            	}
             	if(!endpoints.down.equals(currentNode.position) || !(currentNode.direction==Direction.Up))
             	{
             		queue.add(new Node(Direction.Down, endpoints.down, currentNode));
@@ -73,14 +77,11 @@ public class Ricochet {
             	{
             		queue.add(new Node(Direction.Right, endpoints.right, currentNode));
             	}
-            	if(!endpoints.up.equals(currentNode.position) || !(currentNode.direction==Direction.Down))
-            	{
-            		queue.add(new Node(Direction.Up, endpoints.up, currentNode));
-            	}
             	currentNode = queue.remove();
             }
         	
             List<Direction> direction = new ArrayList<Direction>();
+    
             do
             {
             	direction.add(currentNode.direction);
@@ -88,7 +89,7 @@ public class Ricochet {
 	           for (int i = direction.size()-2; i >= 0; i--) {
 				System.out.println("0" + direction.get(i));
 			}
-            
+           
         }
         
         public Endpoints PossibleEndpointsFromPoints(final Point pos)
@@ -109,9 +110,7 @@ public class Ricochet {
                 drow = -1;
             } else if (m == Direction.Down) {
                 drow = 1;
-            }
-
-            if (m == Direction.Left) {
+            } else if (m == Direction.Left) {
                 dcol = -1;
             } else if (m == Direction.Right) {
                 dcol = 1;
@@ -119,6 +118,7 @@ public class Ricochet {
 
             while (withinBoard(pos.x+drow, pos.y+dcol) &&
                    (board[pos.x+drow][pos.y+dcol] == EMPTY_CHAR
+                   	|| Character.isDigit(board[pos.x+drow][pos.y+dcol])
                     || board[pos.x+drow][pos.y+dcol] == GOAL_CHAR)) {
                 pos.translate(drow, dcol);
             }
@@ -159,6 +159,7 @@ public class Ricochet {
 
             while (withinBoard(pos.x+drow, pos.y+dcol) &&
                    (board[pos.x+drow][pos.y+dcol] == EMPTY_CHAR
+                    || board[pos.x+drow][pos.y+dcol] == EMPTY_CHAR
                     || board[pos.x+drow][pos.y+dcol] == GOAL_CHAR)) {
                 pos.translate(drow, dcol);
             }
