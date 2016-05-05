@@ -1,7 +1,11 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.awt.Point;
 
 public class Ricochet {
@@ -26,90 +30,103 @@ public class Ricochet {
         private int size;
         private Point[] robots;
         private Point goal;
-
+        
         public Board(char[][] board, Point[] robots, Point goal) {
             this.board = board;
             this.size = board.length;
             this.robots = robots;
             this.goal = goal;
         }
-
-        public void computeSolution() {
-            // TODO: Implement really clever stuff here!
-
-
+        
+        public class Node
+        {
+        	public Node(Direction direction, Point position, Node prev)
+        	{
+        		this.prev = prev;
+        		this.direction = direction;
+        		this.position = position;
+        		
+        	}
+        	Node prev;
+        	Direction direction;
+        	Point position;
         }
-        /*
-    	public int[][] distanceMap(Point start) {	
-    		int[][] distMap = new int[size][size];
-    		
-    		for (int[] row: distMap){	// Fylder hele array'et med -1
-    			Arrays.fill(row, -1);
-    		}
-    		
-    		if(board[start.x][start.y] != '#'){	// Checker om startpositionen er en væg
-    			distMap[start.x][start.y] = 0;
-    		} else {
-    			distMap[start.x][start.y] = -1;
-    		}
-    		
-    		int currentPosContent = 0;
-    		int nextStepNumber = 0;
-    		int stepsTaken = 0;
-    		
-    		while(nextStepNumber <= stepsTaken){
-    			
-    			for(int i = 0; i <= size-1; i++){							
-    				for(int j = 0; j <= size-1; j++){
-    					//For-løkke der summer igennem hvert tegn i vores distancemap
-    						
-    					Point currentPos = new Point(i,j); 	//Den nuværende position
-    					currentPosContent = distMap[i][j];			//Den nuværende position's indhold
-    					
-    					if(currentPosContent == nextStepNumber){
-    						for(int k=0; k<=3; k++){
-    							// Checker om vi må incremente på naboværdierne rundt om den "nuværende" position
-    							
-    							if(checkValue(getNeighbors(currentPos)[k]) && distMap[getNeighbors(currentPos)[k].x][getNeighbors(currentPos)[k].y] == -1){
-    								// Checker om det er ok at ændre til næste step, og om vi allerede har været her før.
-    								
-    								distMap[getNeighbors(currentPos)[k].x][getNeighbors(currentPos)[k].y] = nextStepNumber + 1;
-    								stepsTaken++;
-    								// Den endelige increment af naboen til current position
-    							}		
-    						}
-    					}
-    				}
-    			}
-    			nextStepNumber++;
-    			// Vi incrementer til næste "skridt"
-    		}
-    		return distMap;	
-    	}
+        public void computeSolution() {
+        	Queue<Node> queue = new LinkedList<Node>();
+        	queue.add(new Node(null, robots[0], null));
+        	Node currentNode = queue.remove();
+        	
+            while(!currentNode.position.equals(goal))
+            {
+            	
+            	Endpoints endpoints = PossibleEndpointsFromPoints(currentNode.position);
+
+            	if(!endpoints.down.equals(currentNode.position) || !(currentNode.direction==Direction.Up))
+            	{
+            		queue.add(new Node(Direction.Down, endpoints.down, currentNode));
+            	}
+            	if(!endpoints.left.equals(currentNode.position) || !(currentNode.direction==Direction.Right))
+            	{
+            		queue.add(new Node(Direction.Left, endpoints.left, currentNode));
+            	}
+            	if(!endpoints.right.equals(currentNode.position) || !(currentNode.direction==Direction.Left))
+            	{
+            		queue.add(new Node(Direction.Right, endpoints.right, currentNode));
+            	}
+            	if(!endpoints.up.equals(currentNode.position) || !(currentNode.direction==Direction.Down))
+            	{
+            		queue.add(new Node(Direction.Up, endpoints.up, currentNode));
+            	}
+            	currentNode = queue.remove();
+            }
+        	
+            List<Direction> direction = new ArrayList<Direction>();
+            do
+            {
+            	direction.add(currentNode.direction);
+            }while((currentNode = currentNode.prev)!=null);
+	           for (int i = direction.size()-2; i >= 0; i--) {
+				System.out.println("0" + direction.get(i));
+			}
+            
+        }
+        
+        public Endpoints PossibleEndpointsFromPoints(final Point pos)
+        {
+        	  Point up = PointAfterMovingFromPoint(pos, Direction.Up);
+              Point down = PointAfterMovingFromPoint(pos, Direction.Down);
+              Point left = PointAfterMovingFromPoint(pos, Direction.Left);
+              Point right = PointAfterMovingFromPoint(pos, Direction.Right);
+
+              return new Endpoints(up, down, left, right);
+        }
+        
+        public Point PointAfterMovingFromPoint(Point current, Direction m) {
+        	Point pos = new Point(current.x, current.y);
+            int drow = 0, dcol = 0;
+
+            if (m == Direction.Up) {
+                drow = -1;
+            } else if (m == Direction.Down) {
+                drow = 1;
+            }
+
+            if (m == Direction.Left) {
+                dcol = -1;
+            } else if (m == Direction.Right) {
+                dcol = 1;
+            }
+
+            while (withinBoard(pos.x+drow, pos.y+dcol) &&
+                   (board[pos.x+drow][pos.y+dcol] == EMPTY_CHAR
+                    || board[pos.x+drow][pos.y+dcol] == GOAL_CHAR)) {
+                pos.translate(drow, dcol);
+            }
+
+            return pos;
+        }
+       
     	
-    	public boolean checkValue(Point inputValue){
-    		if(inputValue.x >= size || inputValue.y >= size || inputValue.x < 0 || inputValue.y < 0){
-    			// checker om inputvalue er uden for vores map (rows x cols)
-    			return false;
-    		}
-    		
-    		if(board[inputValue.x][inputValue.y] == ' ' || board[inputValue.x][inputValue.y] == 'G'){
-    			// checker i mapData om der er en ledig plads (ikke en væg)
-    			return true;
-    		} else {
-    			return false;
-    		}
-    	}
-    	
-    	public Point[] getNeighbors(Point currentPos) {
-    		Point[] neighbors = { new Point(currentPos.x-1, currentPos.y),
-    								 new Point(currentPos.x+1, currentPos.y),
-    								 new Point(currentPos.x, currentPos.y-1),
-    								 new Point(currentPos.x, currentPos.y+1),
-    							   };
-    		return neighbors;
-    	}
-    	*/
 
         public Endpoints possibleEndpointsForRobot(int robot) {
             assert robot < robots.length;
